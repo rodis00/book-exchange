@@ -1,9 +1,12 @@
 package com.book.exchange.backend.image;
 
 import com.book.exchange.backend.entity.image.ImageEntity;
+import com.book.exchange.backend.entity.user.UserEntity;
 import com.book.exchange.backend.exception.ImageNotFoundException;
 import com.book.exchange.backend.exception.InvalidImageException;
 import com.book.exchange.backend.image.dto.ImageSummaryDto;
+import com.book.exchange.backend.user.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,12 +16,17 @@ import java.io.IOException;
 @Service
 public class ImageService {
 
+    private final UserRepository userRepository;
+    @Value("${app.image-url}")
+    private String imageUrl;
+
     private final ImageRepository imageRepository;
 
     public ImageService(
-            final ImageRepository imageRepository
-    ) {
+            final ImageRepository imageRepository,
+            UserRepository userRepository) {
         this.imageRepository = imageRepository;
+        this.userRepository = userRepository;
     }
 
     public ImageEntity saveImage(MultipartFile image) {
@@ -63,6 +71,17 @@ public class ImageService {
     public void deleteImageBySlug(String slug) {
         if (!imageRepository.existsBySlug(slug))
             throw new ImageNotFoundException("Image not found.");
+        removeUserImageUrl(slug);
         imageRepository.deleteBySlug(slug);
+    }
+
+    public void removeUserImageUrl(String slug) {
+        ImageEntity image = getImageBySlug(slug);
+        String url = imageUrl + image.getSlug();
+        UserEntity user = userRepository.findByImageUrl(url);
+        if (user != null) {
+            user.setImageUrl(null);
+            userRepository.save(user);
+        }
     }
 }
