@@ -17,4 +17,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findBySlug(String slug);
 
     boolean existsBySlug(String slug);
+
+    UserEntity findByImageUrl(String url);
 }

@@ -193,7 +193,8 @@ public class UserService {
 
     public void deleteUserBySlug(String slug) {
         UserEntity user = getUserBySlug(slug);
-        imageService.deleteImageBySlug(user.getImageUrl().substring(imageUrl.length()));
+        if (user.getImageUrl() != null)
+            imageService.deleteImageBySlug(user.getImageUrl().substring(imageUrl.length()));
         userRepository.delete(user);
     }
 
